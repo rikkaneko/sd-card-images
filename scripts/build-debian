@@ -138,6 +138,7 @@ chroot debian /bin/sh -ex <<- EOF
 /usr/bin/apt-get -y install systemd systemd-sysv
 /usr/bin/apt-get -y install systemd-timesyncd || :
 /usr/bin/apt-get -y install systemd-resolved || :
+/usr/bin/apt-get -y install systemd-sysusers || :
 /usr/bin/apt-get clean
 /bin/rm -rf /var/lib/apt/lists/*
 /bin/echo "kernel-url,${KERNEL_URL}" >> /tmp/versions.csv
