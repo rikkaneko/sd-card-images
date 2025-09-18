@@ -5,6 +5,9 @@ OS="${1:-debian}" # For example "debian"
 ARCH="${2:-arm64}" # For example "armhf"
 DIST="${3:-trixie}" # For example "buster"
 CACHE_DIR="./cache.${OS}-${ARCH}-${DIST}"
+PKGS="initramfs-tools, dhcpcd, libpam-systemd, openssh-server, systemd-timesyncd, \
+			curl, pciutils, unzip, wget, xxd, zip, zstd, dnsmasq, vim, nano, u-boot-tools, \
+			e2fsprogs"
 EXTRA_PKGS="${DEB_EXTRA_PKGS:-}"
 SSH_KEY="${DEB_SSH_KEY}"
 
@@ -58,10 +61,6 @@ if [ ! -d "${DEBIAN_BOOTSTRAP_CACHE}" ]; then
 	mkdir -p "${DEBIAN_BOOTSTRAP_CACHE}/var/cache" "${DEBIAN_BOOTSTRAP_CACHE}/var/lib/apt/lists"
 	mount -o bind "${CACHE_DIR}/var/cache" "${DEBIAN_BOOTSTRAP_CACHE}/var/cache"
 	mount -o bind "${CACHE_DIR}/var/lib/apt/lists" "${DEBIAN_BOOTSTRAP_CACHE}/var/lib/apt/lists"
-
-	local PKGS="initramfs-tools, dhcpcd, libpam-systemd, openssh-server, systemd-timesyncd, \
-							curl, pciutils, unzip, wget, xxd, zip, zstd, dnsmasq, vim, nano, u-boot-tools, \
-							e2fsprogs"
 
 	debootstrap --arch arm64 --include "$pkgs, $extra_pkgs" --exclude "isc-dhcp-client" "$deb_dist" "$debian_root" 'https://deb.debian.org/debian/'
 	# Build a Debian root filesystem (first stage)
