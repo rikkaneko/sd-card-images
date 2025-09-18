@@ -49,14 +49,13 @@ esac
 # Create fresh empty directory
 TMP=$(mktemp -d -p "${PWD}" tmp-XXXXXX)
 trap 'rm -rf "${TMP}"' EXIT INT TERM
-cd "${TMP}"
 
-local DEBIAN_BOOTSTRAP_CACHE="${CACHE_DIR}/debootstrap"
+DEBIAN_BOOTSTRAP_CACHE="${CACHE_DIR}/debootstrap"
 if [ ! -d "${DEBIAN_BOOTSTRAP_CACHE}" ]; then
 	echo "Building Debian from debootstrap >"
 	mkdir -p "${DEBIAN_BOOTSTRAP_CACHE}"
 	mkdir -p "${CACHE_DIR}/var/cache" "${CACHE_DIR}/var/lib/apt/lists"
-	mkdir -p "${DEBIAN_BOOTSTRAP_CACHE}/var/cache" "${DEBIAN_BOOTSTRAP_CACHE}_root/var/lib/apt/lists"
+	mkdir -p "${DEBIAN_BOOTSTRAP_CACHE}/var/cache" "${DEBIAN_BOOTSTRAP_CACHE}/var/lib/apt/lists"
 	mount -o bind "${CACHE_DIR}/var/cache" "${DEBIAN_BOOTSTRAP_CACHE}/var/cache"
 	mount -o bind "${CACHE_DIR}/var/lib/apt/lists" "${DEBIAN_BOOTSTRAP_CACHE}/var/lib/apt/lists"
 
