@@ -62,7 +62,6 @@ if [ ! -d "${DEBIAN_BOOTSTRAP_CACHE}" ]; then
 	mount -o bind "${CACHE_DIR}/var/cache" "${DEBIAN_BOOTSTRAP_CACHE}/var/cache"
 	mount -o bind "${CACHE_DIR}/var/lib/apt/lists" "${DEBIAN_BOOTSTRAP_CACHE}/var/lib/apt/lists"
 
-	debootstrap --arch arm64 --include "$pkgs, $extra_pkgs" --exclude "isc-dhcp-client" "$deb_dist" "$debian_root" 'https://deb.debian.org/debian/'
 	# Build a Debian root filesystem (first stage)
 	debootstrap \
 		--arch="${ARCH}" \
