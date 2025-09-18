@@ -5,9 +5,10 @@ OS="${1:-debian}" # For example "debian"
 ARCH="${2:-arm64}" # For example "armhf"
 DIST="${3:-trixie}" # For example "buster"
 CACHE_DIR="./cache.${OS}-${ARCH}-${DIST}"
-PKGS="initramfs-tools, dhcpcd, libpam-systemd, openssh-server, systemd-timesyncd, \
-			curl, pciutils, unzip, wget, xxd, zip, zstd, dnsmasq, vim, nano, u-boot-tools, \
-			e2fsprogs"
+PKGS=\
+"initramfs-tools, dhcpcd, libpam-systemd, openssh-server, systemd-timesyncd, \
+curl, pciutils, unzip, wget, xxd, zip, zstd, dnsmasq, vim, nano, u-boot-tools, \
+e2fsprogs"
 EXTRA_PKGS="${DEB_EXTRA_PKGS:-}"
 SSH_KEY="${DEB_SSH_KEY}"
 
@@ -51,11 +52,13 @@ esac
 
 # Create fresh empty directory
 TMP=$(mktemp -d -p "${PWD}" tmp-XXXXXX)
-trap 'rm -rf "${TMP}"' EXIT INT TERM
+trap 'rm -rf "${TMP}"; umount "${DEBIAN_BOOTSTRAP_CACHE}/var/cache"; umount "${DEBIAN_BOOTSTRAP_CACHE}/var/lib/apt/lists"' EXIT INT TERM
 
 DEBIAN_BOOTSTRAP_CACHE="${CACHE_DIR}/debootstrap"
-if [ ! -d "${DEBIAN_BOOTSTRAP_CACHE}" ]; then
-	echo "Building Debian from debootstrap >"
+if ! ([ -d "${DEBIAN_BOOTSTRAP_CACHE}" ] || \
+			[ -d "${CACHE_DIR}/var/cache" ] || \
+			[ -d "${CACHE_DIR}/var/lib/apt/lists" ]); then
+	echo "Building ${OS}-${ARCH}-${DIST} from debootstrap:"
 	mkdir -p "${DEBIAN_BOOTSTRAP_CACHE}"
 	mkdir -p "${CACHE_DIR}/var/cache" "${CACHE_DIR}/var/lib/apt/lists"
 	mkdir -p "${DEBIAN_BOOTSTRAP_CACHE}/var/cache" "${DEBIAN_BOOTSTRAP_CACHE}/var/lib/apt/lists"
@@ -69,7 +72,7 @@ if [ ! -d "${DEBIAN_BOOTSTRAP_CACHE}" ]; then
 		--variant=minbase \
 		--foreign \
 		--exclude="isc-dhcp-client" \
-		--include="${PKGS}, ${EXTRA_PKGS}"
+		--include="${PKGS}, ${EXTRA_PKGS}" \
 		"${TARGET}" \
 		"${DEBIAN_BOOTSTRAP_CACHE}" \
 		"${URL}" \
@@ -144,6 +147,12 @@ cp -rv --preserve=mode ../2nd-stage-files/pre-2nd-stage-files-"${ARCH}"/* debian
 # Copy ARM emulation stuff
 cp -v /usr/bin/qemu-*-static debian/usr/bin || :
 
+# Mount apt cache
+mount -o bind "${CACHE_DIR}/var/cache" "debian/var/cache"
+mount -o bind "${CACHE_DIR}/var/lib/apt/lists" "debian/var/lib/apt/lists"
+
+trap 'rm -rf "${TMP}"; umount "debian/var/cache"; umount "debian/var/cache";' EXIT INT TERM
+
 # Build a Debian root filesystem (second stage)
 chroot debian /bin/sh -ex <<- EOF
 /debootstrap/debootstrap --second-stage
@@ -167,6 +176,11 @@ chroot debian /bin/sh -ex <<- EOF
 /bin/echo "root:${PASSWORD}" | /usr/sbin/chpasswd
 /bin/sed -i "s/#*\s*PermitRootLogin .*/PermitRootLogin yes/" /etc/ssh/sshd_config
 EOF
+
+umount "debian/var/cache"
+umount "debian/var/lib/apt/lists"
+
+trap 'rm -rf "${TMP}";' EXIT INT TERM
 
 # Remove ARM emulation stuff again
 rm -v debian/usr/bin/qemu-*-static || :
