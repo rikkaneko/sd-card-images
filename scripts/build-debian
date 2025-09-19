@@ -8,7 +8,7 @@ CACHE_DIR="./cache.${OS}-${ARCH}-${DIST}"
 PKGS=\
 "netbase, net-tools, u-boot-tools, initramfs-tools, openssh-server, nano, e2fsprogs, \
 dbus, libpam-systemd, dhcpcd, systemd-timesyncd, curl, pciutils, iproute2, dnsmasq, \
-xxd, zstd bash-completion"
+parted, fdisk, vim, zstd"
 EXTRA_PKGS="${DEB_EXTRA_PKGS:-}"
 SSH_KEY="${DEB_SSH_KEY}"
 
@@ -191,6 +191,10 @@ rm -v debian/etc/machine-id || :
 
 cp -rv --preserve=mode ../2nd-stage-files/post-2nd-stage-files/* debian
 
+if [ -d ../2nd-stage-files/post-custom-files ]; then
+	cp -rv --preserve=mode ../2nd-stage-files/post-custom-files/* debian
+fi
+
 # Set hostname
 echo "${OS}" > debian/etc/hostname
 
@@ -214,7 +218,7 @@ fi
 # >>> ((3800000000 - 32 * 1024 * 1024) // (1024 * 1024)) * (1024 * 1024)
 # 3765436416
 rm -f ext4.img
-fallocate -l 2G ext4.img
+fallocate -l 1G ext4.img
 mkfs.ext4 -d debian ext4.img
 xz -zvf -T 0 ext4.img
 
@@ -223,3 +227,4 @@ mkdir -p "${ARTIFACTS_DIR}"
 cp -v files.txt "${ARTIFACTS_DIR}/${OS}-${DIST}-${ARCH}-${PASSWORD}.bin.xz.files.txt"
 cp -v versions.csv "${ARTIFACTS_DIR}/${OS}-${DIST}-${ARCH}-${PASSWORD}.bin.xz.versions.csv"
 cp -v ext4.img.xz "${ARTIFACTS_DIR}/${OS}-${DIST}-${ARCH}-${PASSWORD}.bin.xz"
+echo -e "\n ** To customize the kernel cmdline, edit /boot/boot.cmd in the root partition. **"
