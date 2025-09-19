@@ -8,7 +8,7 @@ CACHE_DIR="./cache.${OS}-${ARCH}-${DIST}"
 PKGS=\
 "netbase, net-tools, u-boot-tools, initramfs-tools, openssh-server, nano, e2fsprogs, \
 dbus, libpam-systemd, dhcpcd, systemd-timesyncd, curl, pciutils, iproute2, dnsmasq, \
-parted, fdisk, vim, zstd"
+ca-certificates, parted, fdisk, vim, zstd"
 EXTRA_PKGS="${DEB_EXTRA_PKGS:-}"
 SSH_KEY="${DEB_SSH_KEY}"
 
@@ -170,6 +170,8 @@ chroot debian /bin/sh -ex <<- EOF
 /usr/bin/systemctl enable systemd-resolved.service
 /usr/bin/systemctl enable systemd-timesyncd.service
 /usr/bin/systemctl enable sshd-keygen.service
+/usr/bin/systemctl disable dhcpcd.service
+/usr/bin/systemctl disable dnsmasq.service
 /bin/rm -f /var/log/*.log
 /bin/echo "root:${PASSWORD}" | /usr/sbin/chpasswd
 /bin/sed -i "s/#*\s*PermitRootLogin .*/PermitRootLogin yes/" /etc/ssh/sshd_config
