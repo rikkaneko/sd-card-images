@@ -148,10 +148,10 @@ cp -rv --preserve=mode ../2nd-stage-files/pre-2nd-stage-files-"${ARCH}"/* debian
 cp -v /usr/bin/qemu-*-static debian/usr/bin || :
 
 # Mount apt cache
-mount -o bind "${CACHE_DIR}/var/cache" "debian/var/cache"
-mount -o bind "${CACHE_DIR}/var/lib/apt/lists" "debian/var/lib/apt/lists"
+mount -o bind "../${CACHE_DIR}/var/cache" "debian/var/cache"
+mount -o bind "../${CACHE_DIR}/var/lib/apt/lists" "debian/var/lib/apt/lists"
 
-trap 'rm -rf "${TMP}"; umount "debian/var/cache"; umount "debian/var/cache";' EXIT INT TERM
+trap 'umount "debian/var/cache"; umount "debian/var/cache"; rm -rf "${TMP}";' EXIT INT TERM
 
 # Build a Debian root filesystem (second stage)
 chroot debian /bin/sh -ex <<- EOF
